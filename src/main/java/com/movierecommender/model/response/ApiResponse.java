@@ -1,5 +1,4 @@
-// src/main/java/com/movierecommender/model/ApiResponse.java
-package com.movierecommender.model;
+package com.movierecommender.model.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,3 +11,4 @@ public class ApiResponse {
     private String error;
 }
 
+    
