@@ -74,3 +74,73 @@ public class MovieService {
             if (value != null) {
                 CustomerMovie customerMovie = objectMapper.readValue(value, CustomerMovie.class);
                 boolean removed = customerMovie.getWatch
+
+edMovies().removeIf(
+                    movie -> movie.getMovieId().equals(movieId)
+                );
+                
+                if (removed) {
+                    String updatedValue = objectMapper.writeValueAsString(customerMovie);
+                    redisTemplate.opsForValue().set(key, updatedValue);
+                    logger.info("Successfully deleted rating for customer: {}, movie: {}", 
+                        customerId, movieId);
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            logger.error("Error deleting rating: ", e);
+            throw new RuntimeException("Failed to delete rating", e);
+        }
+    }
+
+    private void updateOrAddMovie(CustomerMovie customerMovie, RatingRequest ratingRequest) {
+        var existingMovie = customerMovie.getWatchedMovies().stream()
+                .filter(m -> m.getMovieId().equals(ratingRequest.getMovieId()))
+                .findFirst();
+
+        if (existingMovie.isPresent()) {
+            WatchedMovie movie = existingMovie.get();
+            if (isMoreRecent(ratingRequest.getDate(), movie.getDate())) {
+                movie.setRating(ratingRequest.getRating());
+                movie.setDate(ratingRequest.getDate());
+            }
+        } else {
+            WatchedMovie newMovie = createWatchedMovie(ratingRequest);
+            customerMovie.getWatchedMovies().add(newMovie);
+        }
+    }
+
+    private CustomerMovie createNewCustomerRecord(RatingRequest ratingRequest) {
+        CustomerMovie customerMovie = new CustomerMovie();
+        customerMovie.setCustomerId(ratingRequest.getCustomerId());
+        customerMovie.setWatchedMovies(new ArrayList<>());
+        WatchedMovie watchedMovie = createWatchedMovie(ratingRequest);
+        customerMovie.getWatchedMovies().add(watchedMovie);
+        return customerMovie;
+    }
+
+    private WatchedMovie createWatchedMovie(RatingRequest ratingRequest) {
+        var movieDetails = movieDetailsService.getMovieDetails(ratingRequest.getMovieId());
+        WatchedMovie watchedMovie = new WatchedMovie();
+        watchedMovie.setMovieId(ratingRequest.getMovieId());
+        watchedMovie.setTitle(movieDetails.getTitle());
+        watchedMovie.setYearOfRelease(movieDetails.getYearOfRelease());
+        watchedMovie.setRating(ratingRequest.getRating());
+        watchedMovie.setDate(ratingRequest.getDate());
+        return watchedMovie;
+    }
+
+    private boolean isMoreRecent(String newDate, String existingDate) {
+        try {
+            Date date1 = dateFormat.parse(newDate);
+            Date date2 = dateFormat.parse(existingDate);
+            return date1.after(date2);
+        } catch (ParseException e) {
+            logger.error("Error parsing dates: {} or {}", newDate, existingDate);
+            return false;
+        }
+    }
+}
+
+    
