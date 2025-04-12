@@ -1,4 +1,3 @@
-// src/main/java/com/movierecommender/MovieRecommenderApplication.java
 package com.movierecommender;
 
 import org.springframework.boot.SpringApplication;
