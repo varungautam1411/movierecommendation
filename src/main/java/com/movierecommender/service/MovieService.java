@@ -3,6 +3,7 @@ package com.movierecommender.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.movierecommender.model.domain.CustomerMovie;
 import com.movierecommender.model.domain.WatchedMovie;
+import com.movierecommender.model.domain.MovieDetails;
 import com.movierecommender.model.request.RatingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +28,8 @@ public class MovieService {
     @Autowired
     private MovieDetailsService movieDetailsService;
 
-    public void updateRating(RatingRequest ratingRequest) {
-        String key = "customer:" + ratingRequest.getCustomerId();
+    public void updateRating(RatingRequest request) {
+        String key = "customer:" + request.getCustomerId();
         
         try {
             String existingValue = redisTemplate.opsForValue().get(key);
@@ -36,16 +37,16 @@ public class MovieService {
 
             if (existingValue != null) {
                 customerMovie = objectMapper.readValue(existingValue, CustomerMovie.class);
-                updateOrAddMovie(customerMovie, ratingRequest);
+                updateOrAddMovie(customerMovie, request);
             } else {
-                customerMovie = createNewCustomerRecord(ratingRequest);
+                customerMovie = createNewCustomerRecord(request);
             }
 
             String updatedValue = objectMapper.writeValueAsString(customerMovie);
             redisTemplate.opsForValue().set(key, updatedValue);
             
             logger.info("Successfully updated rating for customer: {}, movie: {}", 
-                ratingRequest.getCustomerId(), ratingRequest.getMovieId());
+                request.getCustomerId(), request.getMovieId());
 
         } catch (Exception e) {
             logger.error("Error updating rating: ", e);
@@ -73,9 +74,7 @@ public class MovieService {
             String value = redisTemplate.opsForValue().get(key);
             if (value != null) {
                 CustomerMovie customerMovie = objectMapper.readValue(value, CustomerMovie.class);
-                boolean removed = customerMovie.getWatch
-
-edMovies().removeIf(
+                boolean removed = customerMovie.getWatchedMovies().removeIf(
                     movie -> movie.getMovieId().equals(movieId)
                 );
                 
@@ -94,40 +93,40 @@ edMovies().removeIf(
         }
     }
 
-    private void updateOrAddMovie(CustomerMovie customerMovie, RatingRequest ratingRequest) {
+    private void updateOrAddMovie(CustomerMovie customerMovie, RatingRequest request) {
         var existingMovie = customerMovie.getWatchedMovies().stream()
-                .filter(m -> m.getMovieId().equals(ratingRequest.getMovieId()))
+                .filter(m -> m.getMovieId().equals(request.getMovieId()))
                 .findFirst();
 
         if (existingMovie.isPresent()) {
             WatchedMovie movie = existingMovie.get();
-            if (isMoreRecent(ratingRequest.getDate(), movie.getDate())) {
-                movie.setRating(ratingRequest.getRating());
-                movie.setDate(ratingRequest.getDate());
+            if (isMoreRecent(request.getDate(), movie.getDate())) {
+                movie.setRating(request.getRating());
+                movie.setDate(request.getDate());
             }
         } else {
-            WatchedMovie newMovie = createWatchedMovie(ratingRequest);
+            WatchedMovie newMovie = createWatchedMovie(request);
             customerMovie.getWatchedMovies().add(newMovie);
         }
     }
 
-    private CustomerMovie createNewCustomerRecord(RatingRequest ratingRequest) {
+    private CustomerMovie createNewCustomerRecord(RatingRequest request) {
         CustomerMovie customerMovie = new CustomerMovie();
-        customerMovie.setCustomerId(ratingRequest.getCustomerId());
+        customerMovie.setCustomerId(request.getCustomerId());
         customerMovie.setWatchedMovies(new ArrayList<>());
-        WatchedMovie watchedMovie = createWatchedMovie(ratingRequest);
+        WatchedMovie watchedMovie = createWatchedMovie(request);
         customerMovie.getWatchedMovies().add(watchedMovie);
         return customerMovie;
     }
 
-    private WatchedMovie createWatchedMovie(RatingRequest ratingRequest) {
-        var movieDetails = movieDetailsService.getMovieDetails(ratingRequest.getMovieId());
+    private WatchedMovie createWatchedMovie(RatingRequest request) {
+        MovieDetails movieDetails = movieDetailsService.getMovieDetails(request.getMovieId());
         WatchedMovie watchedMovie = new WatchedMovie();
-        watchedMovie.setMovieId(ratingRequest.getMovieId());
+        watchedMovie.setMovieId(request.getMovieId());
         watchedMovie.setTitle(movieDetails.getTitle());
         watchedMovie.setYearOfRelease(movieDetails.getYearOfRelease());
-        watchedMovie.setRating(ratingRequest.getRating());
-        watchedMovie.setDate(ratingRequest.getDate());
+        watchedMovie.setRating(request.getRating());
+        watchedMovie.setDate(request.getDate());
         return watchedMovie;
     }
 
@@ -142,5 +141,3 @@ edMovies().removeIf(
         }
     }
 }
-
-    
