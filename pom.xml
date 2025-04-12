@@ -43,12 +43,8 @@
             <version>1.6.9</version>
         </dependency>
 
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
+       
+
 
         <!-- Test -->
         <dependency>
