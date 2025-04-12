@@ -22,7 +22,7 @@ public class RecommendationController {
 
     @Operation(summary = "Update movie rating")
     @PostMapping("/ratings")
-    public ResponseEntity<?> updateRating(@Valid @RequestBody RatingRequest ratingRequest) {
+    public ResponseEntity<ApiResponse> updateRating(@Valid @RequestBody RatingRequest ratingRequest) {
         try {
             movieService.updateRating(ratingRequest);
             return ResponseEntity.ok(new ApiResponse(true, "Rating updated successfully", null));
@@ -34,13 +34,14 @@ public class RecommendationController {
 
     @Operation(summary = "Get customer ratings")
     @GetMapping("/ratings/{customerId}")
-    public ResponseEntity<?> getCustomerRatings(@PathVariable String customerId) {
+    public ResponseEntity<Object> getCustomerRatings(@PathVariable String customerId) {
         try {
             CustomerMovie customerMovie = movieService.getCustomerRatings(customerId);
             if (customerMovie != null) {
                 return ResponseEntity.ok(customerMovie);
             }
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound()
+                .build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                 .body(new ApiResponse(false, "Failed to fetch ratings", e.getMessage()));
@@ -49,7 +50,7 @@ public class RecommendationController {
 
     @Operation(summary = "Delete rating")
     @DeleteMapping("/ratings/{customerId}/{movieId}")
-    public ResponseEntity<?> deleteRating(
+    public ResponseEntity<ApiResponse> deleteRating(
             @PathVariable String customerId, 
             @PathVariable String movieId) {
         try {
@@ -57,7 +58,7 @@ public class RecommendationController {
             if (deleted) {
                 return ResponseEntity.ok(new ApiResponse(true, "Rating deleted successfully", null));
             }
-            return ResponseEntity.notFound()
+            return ResponseEntity.status(404)
                 .body(new ApiResponse(false, "Rating not found", null));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
@@ -65,3 +66,5 @@ public class RecommendationController {
         }
     }
 }
+
+    
