@@ -1,9 +1,11 @@
-// src/main/java/com/movierecommender/controller/RecommendationController.java
 package com.movierecommender.controller;
 
-import com.movierecommender.model.RatingRequest;
-import com.movierecommender.model.CustomerMovie;
+import com.movierecommender.model.request.RatingRequest;
+import com.movierecommender.model.response.ApiResponse;
+import com.movierecommender.model.domain.CustomerMovie;
 import com.movierecommender.service.MovieService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,23 +14,25 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/recommendations")
+@Tag(name = "Movie Recommendations")
 public class RecommendationController {
 
     @Autowired
     private MovieService movieService;
 
+    @Operation(summary = "Update movie rating")
     @PostMapping("/ratings")
     public ResponseEntity<?> updateRating(@Valid @RequestBody RatingRequest ratingRequest) {
         try {
             movieService.updateRating(ratingRequest);
-            return ResponseEntity.ok()
-                .body(new ApiResponse(true, "Rating updated successfully", null));
+            return ResponseEntity.ok(new ApiResponse(true, "Rating updated successfully", null));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                 .body(new ApiResponse(false, "Failed to update rating", e.getMessage()));
         }
     }
 
+    @Operation(summary = "Get customer ratings")
     @GetMapping("/ratings/{customerId}")
     public ResponseEntity<?> getCustomerRatings(@PathVariable String customerId) {
         try {
@@ -43,6 +47,7 @@ public class RecommendationController {
         }
     }
 
+    @Operation(summary = "Delete rating")
     @DeleteMapping("/ratings/{customerId}/{movieId}")
     public ResponseEntity<?> deleteRating(
             @PathVariable String customerId, 
@@ -50,8 +55,7 @@ public class RecommendationController {
         try {
             boolean deleted = movieService.deleteRating(customerId, movieId);
             if (deleted) {
-                return ResponseEntity.ok()
-                    .body(new ApiResponse(true, "Rating deleted successfully", null));
+                return ResponseEntity.ok(new ApiResponse(true, "Rating deleted successfully", null));
             }
             return ResponseEntity.notFound()
                 .body(new ApiResponse(false, "Rating not found", null));
@@ -61,4 +65,3 @@ public class RecommendationController {
         }
     }
 }
-
