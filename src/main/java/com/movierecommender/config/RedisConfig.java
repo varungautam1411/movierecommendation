@@ -12,13 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 @Configuration
 public class RedisConfig {
 
-    @Value("${spring.redis.host}")
+    @Value("${REDIS_HOST}")
     private String redisHost;
 
-    @Value("${spring.redis.port}")
+    @Value("${REDIS_PORT:6379}")
     private int redisPort;
 
-    @Value("${spring.redis.password}")
+    @Value("${REDIS_PASSWORD}")
     private String redisPassword;
 
     @Bean
@@ -32,12 +32,12 @@ public class RedisConfig {
 
     @Bean
     public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, String> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
-        template.setEnableTransactionSupport(true);
-        return template;
+        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.setEnableTransactionSupport(true);
+        return redisTemplate;
     }
 }
 
