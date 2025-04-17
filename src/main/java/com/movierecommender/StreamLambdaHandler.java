@@ -72,30 +72,32 @@ public class StreamLambdaHandler implements RequestHandler<APIGatewayProxyReques
 
             Object result;
             try {
-                if (path.matches(".*/api/recommendations/ratings")) {
-                    if ("POST".equals(httpMethod)) {
+                if(path.contains("/api/recommendations/ratings")){
+                    if (httpMethod.equalsIgnoreCase("POST")) {
+                  
                         RatingRequest ratingRequest = objectMapper.readValue(input.getBody(), RatingRequest.class);
                         result = controller.updateRating(ratingRequest);
                         return createResponseFromObject(result);
                     }
-                } else if (path.matches(".*/api/recommendations/ratings/.*")) {
-                    if ("GET".equals(httpMethod)) {
+                 if(httpMethod.equalsIgnoreCase("GET")) {
+                    
                         String customerId = pathParams.get("customerId");
                         result = controller.getCustomerRatings(customerId);
                         return createResponseFromObject(result);
-                    } else if ("DELETE".equals(httpMethod)) {
+                    } 
+                 if (httpMethod.equalsIgnoreCase("DELETE"))  {
                         String customerId = pathParams.get("customerId");
                         String movieId = pathParams.get("movieId");
                         result = controller.deleteRating(customerId, movieId);
                         return createResponseFromObject(result);
                     }
-                } else if (path.matches(".*/api/recommendations/movies/.*")) {
-                    if ("GET".equals(httpMethod)) {
+                }else if (path.contains("/api/recommendations/movies/") &&  (httpMethod.equalsIgnoreCase("GET"))) {
+                    
                         String customerId = pathParams.get("customerId");
                         result = controller.getRecommendations(customerId);
                         return createResponseFromObject(result);
                     }
-                }
+                
             } catch (Exception e) {
                 logger.error("Error processing request", e);
                 return createResponse(500, new ApiResponse(false, "Error processing request: " + e.getMessage()));
