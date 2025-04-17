@@ -3,14 +3,40 @@ package com.movierecommender.model.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RatingRequest {
-    @JsonProperty("customer-id")
-    private String customerId;
-    
-    @JsonProperty("movie-id")
+    @JsonProperty("movieId")  // Changed from "movie-id" to "movieId"
     private String movieId;
-    
+
+    @JsonProperty("customerId")  // Changed from "customer-id" to "customerId"
+    private String customerId;
+
+    @JsonProperty("rating")
     private int rating;
+
+    @JsonProperty("date")
     private String date;
+
+    @JsonProperty("title")
+    private String title;
+
+    @JsonProperty("yearOfRelease")  // Changed from "yearOfRealease" to "yearOfRelease"
+    private Integer yearOfRelease;
+
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getYearOfRelease() {
+        return yearOfRelease;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setYearOfRelease(int yearOfRelease) {
+        this.yearOfRelease = yearOfRelease;
+    }
 
     // Getters and Setters
     public String getCustomerId() {
