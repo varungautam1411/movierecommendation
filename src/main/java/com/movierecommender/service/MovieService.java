@@ -3,7 +3,6 @@ package com.movierecommender.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.movierecommender.model.domain.CustomerMovie;
 import com.movierecommender.model.domain.WatchedMovie;
-import com.movierecommender.model.domain.MovieDetails;
 import com.movierecommender.model.request.RatingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +24,7 @@ public class MovieService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    @Autowired
-    private MovieDetailsService movieDetailsService;
+    
 
     public void updateRating(RatingRequest request) {
         String key = "customer:" + request.getCustomerId();
@@ -103,6 +101,8 @@ public class MovieService {
             if (isMoreRecent(request.getDate(), movie.getDate())) {
                 movie.setRating(request.getRating());
                 movie.setDate(request.getDate());
+                movie.setTitle(request.getTitle());
+                movie.setYearOfRelease(request.getYearOfRelease());
             }
         } else {
             WatchedMovie newMovie = createWatchedMovie(request);
@@ -120,11 +120,11 @@ public class MovieService {
     }
 
     private WatchedMovie createWatchedMovie(RatingRequest request) {
-        MovieDetails movieDetails = movieDetailsService.getMovieDetails(request.getMovieId());
+        
         WatchedMovie watchedMovie = new WatchedMovie();
         watchedMovie.setMovieId(request.getMovieId());
-        watchedMovie.setTitle(movieDetails.getTitle());
-        watchedMovie.setYearOfRelease(movieDetails.getYearOfRelease());
+        watchedMovie.setTitle(request.getTitle());
+        watchedMovie.setYearOfRelease(request.getYearOfRelease());
         watchedMovie.setRating(request.getRating());
         watchedMovie.setDate(request.getDate());
         return watchedMovie;
